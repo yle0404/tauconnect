@@ -1,0 +1,1110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="panelStyle.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../js/jquery.js"></script>
+    <script>
+        $(document).ready(function(){
+            var globalPostId = 0;
+            var globalUserId = 0;
+            var noPosts = $('#no-posts');
+            var complaintsTable = $('#complaints-table');
+            var receiverName = $('#receiver-name');
+            var messageList = $('#message-list');
+            var messageText = $('#message-text');
+            var sendMessage = $('#send-message');
+            var messageTextFeedback = $('#message-text-feedback');
+            var profileUserTYpe = $('#profile-user-type');
+            var submitComplainSection = $('.submit-complain-section');
+            var submitComplain = $('#submit-complain');
+            var complain = $('#complain');
+            var updatePassword = $('#update-password');
+            var confirmPassword = $('#confirm-password');
+            var confirmEditProfile = $('#confirm-edit-profile');
+            var messagesLink = $('#messages-link');
+            var messagesSection = $('#messages-section');
+            var messageUsers = $('#message-users');
+            var editProfileModalTrigger = $('#edit-profile-modal-trigger');
+            var updateEmail = $('#update-email');
+            var updateName = $('#update-name');
+            var imageUpload = $('#image-upload');
+            var confirmImageUpload = $('#confirm-image-upload');
+            var profilePicture = $('#profile-picture');
+            var profileEmail = $('#profile-email');
+            var profileName = $('#profile-name');
+            var profileSection = $('#profile-section');
+            var profileLink = $('#profile-link');
+            var forumSection = $('#forum-section');
+            var announcementLink = $('#announcement-link');
+            var logout = $('#logout');
+            var homeLink = $('#home-link');
+            var posts = $('#posts');
+            var navigationLink = $('.navigation-link');
+            var announcmentSection = $('#announcment-section');
+            var announcementTable = $('#announcement-table');
+            var forumPost = $('#forum-post');
+            var confirmForumPost = $('#confirm-forum-post');
+            var postAnnouncementCard = $('#post-announcement-card');
+            var postAnnouncementText = $('#post-announcement-text');
+            var confirmPostAnnouncement = $('#confirm-post-announcement');
+            var trendingTopics = $('#trending-topics');
+            var specificPostProfilePicture = $('#specific-post-profile-picture');
+            var specificPostName = $('#specific-post-name');
+            var speciicPostDate = $('#specific-post-date');
+            var specificPostDescription = $('#specific-post-description');
+            var specificPostCommentList = $('#specific-post-comment-list');
+            var usersToMessage = $('#users-to-message');
+            var newMessage = $('#new-message');
+            var sendNewMessage = $('#send-new-message');
+            var complaintTo = $("#complaint-to");
+            var complaintToError = $('#complaint-to-error');
+
+
+            newMessage.on('keydown', function(){
+                newMessage.removeClass('is-invalid');
+            })
+            sendNewMessage.on('click', function(){
+                if(newMessage.val() == ""){
+                    newMessage.addClass('is-invalid');
+                }else{
+                    $.ajax({
+                        type: 'POST',
+                        url: 'php/sendNewMessage.php',
+                        data:{
+                            receiver_id: usersToMessage.val(),
+                            message: newMessage.val(),
+                        },
+                        success: function(response){
+                            var data = JSON.parse(response);
+                            addToUsersToMessageTable(messageUsers.children().length, data.id, data.name);
+                            alert('Message Sent.');
+                            $('#write-new-message-modal').modal('hide');
+                            newMessage.val('');
+                            usersToMessage.val('');
+                        }
+                    })
+                }
+            })
+            usersToMessage.on('focus', function(){
+
+                usersToMessage.children().remove();
+                $.ajax({
+                    type: 'GET',
+                    url: 'php/usersToMessage.php',
+                    success: function(response){
+                        var data = JSON.parse(response);
+
+                        $(data).each(function(index, value){
+                            addToUsersSelection(index, value.id, value.name);
+                        })
+                    }
+                })
+            })
+
+            function addToUsersSelection(index, id, name){
+                usersToMessage.append(`<option value="${id}">${name}</option>`)
+            }
+            postAnnouncementCard.hide();
+
+            confirmPostAnnouncement.on('click', function(){
+                if(postAnnouncementText.val() == ""){
+                    postAnnouncementText.addClass('is-invalid');
+                }else{
+                    $.ajax({
+                        type: 'POST',
+                        url: 'php/postAnnouncement.php',
+                        data:{
+                            announcement: postAnnouncementText.val(),
+                        },
+                        success: function(response){
+                            postAnnouncementText.val('');
+                            var data = JSON.parse(response);
+                            announcementTable.prepend(`<div class="card shadow mt-2 col-lg-6 mx-auto">
+                                                        <div class="card-body">
+                                                            <div class="row row-cols-2 gx-3">
+                                                                <div class="col-2">
+                                                                    <img src="../admin/images/tau logo.png" style="height:auto; width:auto" alt="" class="img-fluid">
+                                                                </div>
+                                                                <div class="col align-self-center">
+                                                                    <p class="fw-bold">${data.name}<br><span class="fw-normal"><em>${data.date}</em></span></p>
+                                                                </div>
+                                                            </div>
+                                                            <p class="px-5 py-3 text-center fw-bold fs-2">
+                                                                ${data.announcement}
+                                                            </p>
+                                                        </div>
+                                                    </div>`)
+                        }
+                    })
+                }
+            })
+
+            confirmForumPost.on('click', function(){
+                if(forumPost.val() == ""){
+                    forumPost.addClass('is-invalid');
+                }else{
+                    $.ajax({
+                        type: 'POST',
+                        url: 'php/postTopic.php',
+                        data: {
+                            topic: forumPost.val(),
+                        },
+                        success: function(response){
+                            var data = JSON.parse(response);
+
+                            addToPostListTwo(data.comments, data.profile_picture, data.name, data.date, data.description, data.post_id); 
+                        }
+                    })
+                }
+            })
+            navigationLink.on('click', function(){
+                navigationLink.removeClass('navigation-is-active');
+                $(this).addClass('navigation-is-active');
+            })
+
+            editProfileModalTrigger.on('click', function(){
+                getProfileToEditFunc(updateName,updateEmail);
+            })
+            session();
+            getPostsFunc();
+
+            homeLink.on('click', function(){
+                messagesSection.hide();
+                profileSection.hide();
+                announcmentSection.hide();
+                forumSection.show();
+                posts.children().remove();
+                getPostsFunc();
+            });
+
+            announcementLink.on('click', function(){
+                messagesSection.hide();
+                profileSection.hide();
+                announcmentSection.show();
+                announcementTable.children().remove();
+                forumSection.hide();
+                getAnnouncementsFunc();
+            })
+
+            profileLink.on('click', function(){
+                messagesSection.hide();
+                profileSection.show();
+                announcmentSection.hide();
+                forumSection.hide();
+                getProfileFunc(profileName, profileEmail, profileUserTYpe);
+            })
+
+            messagesLink.on('click', function(){
+                profileSection.hide();
+                announcmentSection.hide();
+                forumSection.hide();
+                messagesSection.show();
+                getUsersToMessageFunc();
+            })
+            submitComplainSection.hide();
+            announcmentSection.hide();
+            profileSection.hide();
+            messagesSection.hide();
+
+            logoutFunc();
+            
+
+            confirmImageUpload.on('click', function(){
+                if(imageUpload.val() == ""){
+                    alert('Please choose an image file.');
+                }else{
+                    changeProfilePicture();
+                }
+            })
+
+            confirmEditProfile.on('click', function(){
+                editProfileFunc(profileName, profileEmail);
+            })
+
+            complain.on('keydown', function(){
+                complain.removeClass('is-invalid');
+            })
+            submitComplain.on('click', function(){
+                if(complain.val() == ""){
+                    $('#complain-feedback').text('Please fill out this field.');
+                    complain.addClass('is-invalid');
+                }else if(complaintTo.val() == ""){
+                    complaintTo.addClass('is-invalid');
+                    complaintToError.text('Please fill out this field');
+                }else{
+                    complain.removeClass('is-invalid');
+                    submitComplainFunc(complain, complaintTo);
+                    
+                }
+            })
+            complaintTo.on('keydown', function(){
+                complaintTo.removeClass('is-invalid');
+            })
+
+            messageText.on('keydown', function(){
+                messageText.removeClass('is-invalid');
+            })
+            sendMessage.on('click', function(){
+                if(messageText.val() == ""){
+                    messageTextFeedback.text('Please fill out this field.')
+                    messageText.addClass('is-invalid');
+                }else{
+                    sendMessageFunc(messageText, globalUserId);
+                }
+            })
+
+            function sendMessageFunc(message, userId){
+                $.ajax({
+                    type: 'POST',
+                    url: 'php/sendMessage.php',
+                    data:{
+                        message: message.val(),
+                        receiver_id: userId
+                    },
+                    success: function(response){
+                        message.val('');
+                        var data = JSON.parse(response);
+                        messageList.append(`<div class="card shadow bg-success text-light ms-auto col-7 rounded-4 mt-3"><div class="card-body">${data.message}</div></div>`)
+                    }
+                })
+            }
+
+            function submitComplainFunc(complain, to){
+                $.ajax({
+                    type: 'POST',
+                    url: 'php/submitComplain.php',
+                    data:{
+                        complain: complain.val(),
+                        complain_to: to.val()
+                    },
+                    success: function(response){
+                        if(response != 'index.html'){
+                            complain.val('');
+                            complaintTo.val('');
+                            var data = JSON.parse(response);
+                            alert('Complaint has been sent to the Administrator.')
+                            complaintsTable.append(`<tr><td>${data.complaint}</td><td>${value.category}</td><td>${data.status}</td><td>${data.date}</td></tr>`);
+                        }else{
+                            window.location.replace(response);
+                        }
+                        
+                    }
+                })
+            }
+            function editProfileFunc(profilename, profileemail){
+                if(updateName.val() == ""){
+                    updateName.addClass('is-invalid');
+                }else if(updateEmail.val() == ""){
+                    updateEmail.addClass('is-invalid');
+                }else if(updatePassword.val() == ""){
+                    updatePassword.addClass('is-invalid');
+                }else if(confirmPassword.val() == ""){
+                    confirmPassword.addClass('is-invalid');
+                }else if(updatePassword.val() != confirmPassword.val()){
+                    alert('Password Mismatch');
+                }else{
+                    $.ajax({
+                        type: 'POST',
+                        url: 'php/updateProfile.php',
+                        data:{
+                            name: updateName.val(),
+                            email: updateEmail.val(),
+                            password: updatePassword.val()
+                        },
+                        success: function(response){
+                            ;
+                            if(response == 'ok'){
+                                alert('Profile has been updated.');
+                                profilename.text(updateName.val());
+                                profileemail.text(updateEmail.val());
+                            }else{
+                                alert('Session not valid. You will be redirected to login page.');
+                                window.location.replace(response);
+                            }
+                            
+                        }
+                    })
+                }
+                
+            }
+
+
+            function getUsersToMessageFunc(){
+                messageUsers.children().remove();
+                $.ajax({
+                    type: 'GET',
+                    url: 'php/getUsers.php',
+                    success: function(response){
+                        if(response == 'index.html'){
+                            window.location.replace(response);
+                        }else{
+                            var data = JSON.parse(response);
+                            $(data).each(function(index, value){
+                                addToUsersToMessageTable(index, value.id, value.name)
+                            })
+                            
+                        }
+                        
+                    }
+                })
+            }
+
+            function addToUsersToMessageTable(index, id, name){
+                messageUsers.append(`<div class="card col-lg-5 mx-auto mt-2">
+                                        <div class="card-body">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chat-fill" viewBox="0 0 16 16">
+                                            <path d="M8 15c4.418 0 8-3.134 8-7s-3.582-7-8-7-8 3.134-8 7c0 1.76.743 3.37 1.97 4.6-.097 1.016-.417 2.13-.771 2.966-.079.186.074.394.273.362 2.256-.37 3.597-.938 4.18-1.234A9.06 9.06 0 0 0 8 15z"/>
+                                            </svg><button data-bs-toggle="modal" data-bs-target="#conversation-modal" class="btn btn-link ms-3 user" value="${id}">${name}</button>
+                                        </div>
+                                    </div>`)
+
+                var user = messageUsers.children().eq(index).find('.user');
+                user.on('click', function(){
+                    receiverName.text($(this).text());
+                    globalUserId = $(this).val();
+                    var thisUserId = $(this).val();
+                    messageList.children().remove();
+
+                    $.ajax({
+                        type: 'GET',
+                        url: 'php/getMessages.php',
+                        data: {
+                            user_id: thisUserId
+                        },
+                        success: function(response){
+                            ;
+                            var data = JSON.parse(response);
+                            $(data).each(function(index, value){
+                                if(value.mine == false){
+                                    messageList.append(`<div class="card shadow bg-light text-dark me-auto col-7 rounded-4 mt-3"><div class="card-body">${value.message.message}</div></div>`)
+                                }else{
+                                    messageList.append(`<div class="card shadow bg-success text-light ms-auto col-7 rounded-4 mt-3"><div class="card-body">${value.message.message}</div></div>`)
+                                }
+                            })
+                        }
+                    })
+                })
+            }
+            function changeProfilePicture(){
+                var formData = new FormData();
+                formData.append("image", imageUpload[0].files[0]);
+                $.ajax({
+                    type: 'POST',
+                    url: 'php/uploadProfilePicture.php',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function(response){
+                        if(response == 'invalid'){
+                            alert('Invalid file. Please upload image files only.');
+                        }else{
+                            profilePicture.attr("src",response);
+                            imageUpload.val('');
+                            $('#upload-profile-picture-modal').modal('hide');
+                        }
+                    }
+                })
+            }
+
+            function getProfileToEditFunc(name, email){
+                $.ajax({
+                    type: 'GET',
+                    url: 'php/getMyProfile.php',
+                    success: function(response){
+                        if(response != 'index.html'){
+                            var data = JSON.parse(response);
+                            name.val(data.name);
+                            email.val(data.email);
+                            
+                        }else{
+                            window.location.replace(response);
+                        }
+                    }
+                })
+            }
+
+
+            function getProfileFunc(name, email, usertype){
+                complaintsTable.children().remove();
+                $.ajax({
+                    type: 'GET',
+                    url: 'php/getMyProfile.php',
+                    success: function(response){
+                        ;
+                        if(response != 'index.html'){
+                            var data = JSON.parse(response);
+                            name.text(data.name);
+                            email.text(data.email);
+                            usertype.text(data.user_type);
+                            if(data.user_type == 'Student'){
+                                submitComplainSection.show()
+                            }else{
+                                submitComplainSection.hide();
+                            }
+                            if(data.profile_picture != null){
+                                profilePicture.attr("src",data.profile_picture);
+                            }
+                        }else{
+                            window.location.replace(response);
+                        }
+                    }
+                })
+
+                $.ajax({
+                    type: 'GET',
+                    url: 'php/getMyComplaints.php',
+                    success: function(response){
+                        var data = JSON.parse(response);
+                        $(data).each(function(index, value){
+                            complaintsTable.append(`<tr><td>${value.complaint}</td><td>${value.category}</td><td>${value.status}</td><td>${value.date}</td></tr>`);
+                            if(complaintsTable.children().eq(index).children().eq(2).text() == 'DENIED'){
+                                complaintsTable.children().eq(index).children().eq(2).addClass('text-danger fw-bold');
+                            }else if(complaintsTable.children().eq(index).children().eq(2).text() == 'ACKNOWLEDGED'){
+                                complaintsTable.children().eq(index).children().eq(2).addClass('text-success fw-bold');
+                            }
+                        })
+                    }
+                })
+            }
+            function getAnnouncementsFunc(){
+                $.ajax({
+                    type: 'GET',
+                    url: 'php/getAnnouncements.php',
+                    success: function(response){
+                        var data = JSON.parse(response);
+                        var userType = data.user_type;
+
+                        if(userType == 'Student'){
+                            postAnnouncementCard.hide();
+                        }else{
+                            postAnnouncementCard.show();
+                        }
+                        $(data.announcements).each(function(index, value){
+                            announcementTable.append(`<div class="card shadow mt-2 col-lg-6 mx-auto">
+                                                        <div class="card-body">
+                                                            <div class="row row-cols-2 gx-3">
+                                                                <div class="col-2">
+                                                                    <img src="../admin/images/tau logo.png" style="height:auto; width:auto" alt="" class="img-fluid">
+                                                                </div>
+                                                                <div class="col align-self-center">
+                                                                    <p class="fw-bold">${value.name}<br><span class="fw-normal"><em>${value.date}</em></span></p>
+                                                                </div>
+                                                            </div>
+                                                            <p class="px-5 py-3 text-center fw-bold fs-2">
+                                                                ${value.announcement}
+                                                            </p>
+                                                        </div>
+                                                    </div>`)
+                        })
+                    }
+                })
+            }
+            function logoutFunc(){
+                logout.on('click', function(){
+                    $.ajax({
+                        type: 'GET',
+                        url: 'php/logout.php',
+                        success: function(response){
+                            window.location.replace(response);
+                        }
+                    })
+                })
+            }
+            function getPostsFunc(){
+                trendingTopics.children().remove();
+                $.ajax({
+                    type: 'POST',
+                    url: 'php/getAdminPosts.php',
+                    success: function(response){
+                        
+                        if(response != 'index.html'){
+                            var data = JSON.parse(response);
+                            $(data.posts).each(function(index, value){
+                                noPosts.hide();
+                                addToPostList(index, value.comments, value.profile_picture, value.name, value.date, value.description, value.post_id);
+
+                            })
+
+                            $(data.trending_topics).each(function(index, value){
+                                trendingTopics.append(`<li><a href="#${value.post_id}" class="btn btn-link text-start" text-start" style="width:100%">
+                                                            ${value.description}
+                                                        </button></li>`)
+                            })
+                            postFunctions(); 
+                            
+                        }
+                    }
+                })
+            }
+
+            function appendedPostFunctions(postCard){
+                var writeComment = postCard.find('.write-comment');
+                var writeCommentBtn = postCard.find('.write-comment-btn')
+                var viewAllComments = postCard.find('.view-all-comments');
+                writeComment.on('keydown', function(){
+                    $(this).removeClass('is-invalid');
+                })
+
+                viewAllComments.on('click', function(){
+                    globalPostId = $(this).val();
+                    specificPostName.text('');
+                    speciicPostDate.text('');
+                    specificPostProfilePicture.removeAttr('src');
+                    specificPostDescription.text('');
+                    specificPostCommentList.children().remove();
+
+                    $.ajax({
+                        type: 'POST',
+                        url: 'php/getSpecificPostWithComments.php',
+                        data:{
+                            post_id: globalPostId,
+                        },
+                        success: function(response){
+                            var data = JSON.parse(response);
+                            console.log(data);
+                            specificPostProfilePicture.attr("src", data.profile_picture);
+                            specificPostName.text(data.name);
+                            speciicPostDate.text(data.date);
+                            specificPostDescription.text(data.description);
+                            $(data.comments).each(function(index, value){
+                                specificPostCommentList.append(`<div class="card mt-2">
+                                                                <div class="card-body">
+                                                                    <p class="lh-sm">
+                                                                        <span class="fw-bold">${value.name}</span><br>
+                                                                        <span class="fs-6">${value.comment}</span>
+                                                                    </p>
+                                                                </div>
+                                                            </div>`)
+                            })
+                        }
+                    })
+                })
+                writeCommentBtn.on('click', function(){
+                    var thisWriteComment = $(this).parent().children().eq(0);
+                    var thisWriteCommentBtn = $(this);
+                    var thisCommentList = $(this).parent().parent().children().eq(2);
+                    if(thisWriteComment.val() == ""){
+                        thisWriteComment.addClass('is-invalid');
+                    }else{
+                        $.ajax({
+                            type: 'POST',
+                            url: 'php/postComment.php',
+                            data:{
+                                comment: thisWriteComment.val(),
+                                post_id: thisWriteCommentBtn.val()
+                            },
+                            success: function(response){
+                                if(response != 'index.html'){
+                                    thisWriteComment.val('');
+
+                                    var data = JSON.parse(response);
+                                    thisCommentList.append(`<div class="card mt-2">
+                                                                <div class="card-body">
+                                                                    <p class="lh-sm">
+                                                                        <span class="fw-bold">${data.name}</span><br>
+                                                                        <span class="fs-6">${data.comment}</span>
+                                                                    </p>
+                                                                </div>
+                                                            </div>`)
+                                }
+                            }
+                        })
+                    }
+                })
+            }
+
+            function postFunctions(){
+                var writeComment = $('.write-comment');
+                var writeCommentBtn = $('.write-comment-btn')
+                var viewAllComments = $('.view-all-comments');
+                writeComment.on('keydown', function(){
+                    $(this).removeClass('is-invalid');
+                })
+
+                viewAllComments.on('click', function(){
+                    globalPostId = $(this).val();
+                    specificPostName.text('');
+                    speciicPostDate.text('');
+                    specificPostProfilePicture.removeAttr('src');
+                    specificPostDescription.text('');
+                    specificPostCommentList.children().remove();
+
+                    $.ajax({
+                        type: 'POST',
+                        url: 'php/getSpecificPostWithComments.php',
+                        data:{
+                            post_id: globalPostId,
+                        },
+                        success: function(response){
+                            var data = JSON.parse(response);
+                            console.log(data);
+                            specificPostProfilePicture.attr("src", data.profile_picture);
+                            specificPostName.text(data.name);
+                            speciicPostDate.text(data.date);
+                            specificPostDescription.text(data.description);
+                            $(data.comments).each(function(index, value){
+                                specificPostCommentList.append(`<div class="card mt-2">
+                                                                <div class="card-body">
+                                                                    <p class="lh-sm">
+                                                                        <span class="fw-bold">${value.name}</span><br>
+                                                                        <span class="fs-6">${value.comment}</span>
+                                                                    </p>
+                                                                </div>
+                                                            </div>`)
+                            })
+                        }
+                    })
+                })
+                writeCommentBtn.on('click', function(){
+                    var thisWriteComment = $(this).parent().children().eq(0);
+                    var thisWriteCommentBtn = $(this);
+                    var thisCommentList = $(this).parent().parent().children().eq(2);
+                    if(thisWriteComment.val() == ""){
+                        thisWriteComment.addClass('is-invalid');
+                    }else{
+                        $.ajax({
+                            type: 'POST',
+                            url: 'php/postComment.php',
+                            data:{
+                                comment: thisWriteComment.val(),
+                                post_id: thisWriteCommentBtn.val()
+                            },
+                            success: function(response){
+                                if(response != 'index.html'){
+                                    thisWriteComment.val('');
+
+                                    var data = JSON.parse(response);
+                                    thisCommentList.append(`<div class="card mt-2">
+                                                                <div class="card-body">
+                                                                    <p class="lh-sm">
+                                                                        <span class="fw-bold">${data.name}</span><br>
+                                                                        <span class="fs-6">${data.comment}</span>
+                                                                    </p>
+                                                                </div>
+                                                            </div>`)
+                                }
+                            }
+                        })
+                    }
+                })
+            }
+
+            function addToPostListTwo(comments,profilePicture, name, date, description, postId){
+                if(profilePicture == null){
+                    profilePicture = "images/blank.png";
+                }
+                posts.prepend(`<div class="col-lg-6 mx-auto card mt-5 shadow rounded-3">
+                                    <div class="card-body">
+                                        <div class="d-flex">
+                                            <img src="${profilePicture}" class="img-fluid" style="height:50px;width:50px;border-radius:100%">
+                                            <div class="ms-3">
+                                                <p class="lh-sm"><span class="fw-bold fs-4">${name}</span></span><br>${date}</p>
+                                            </div>
+                                        </div>
+                                        <p class="fs-2">${description}</p>
+                                    </div>
+                                    <div class="card-footer">
+                                        <h5 class="fw-bold">Comments</h5>
+                                        <button value = "${postId}" class="view-all-comments btn btn-link" data-bs-toggle="modal" data-bs-target="#view-all-comments-modal">View All Comments...</button>
+                                        <div class="comment-list">
+                                            
+                                        </div>
+                                        <div class="input-group mt-3">
+
+                                            <input class="write-comment form-control" type="text" placeholder="Write a comment...">
+                                            <div class="invalid-feedback">Please fill out this field.</div>
+                                            <button value="${postId}" class="write-comment-btn btn btn-outline-success"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-send-fill" viewBox="0 0 16 16">
+                                            <path d="M15.964.686a.5.5 0 0 0-.65-.65L.767 5.855H.766l-.452.18a.5.5 0 0 0-.082.887l.41.26.001.002 4.995 3.178 3.178 4.995.002.002.26.41a.5.5 0 0 0 .886-.083l6-15Zm-1.833 1.89L6.637 10.07l-.215-.338a.5.5 0 0 0-.154-.154l-.338-.215 7.494-7.494 1.178-.471-.47 1.178Z"/>
+                                            </svg></button>
+                                        </div>
+                                    </div>
+                                </div>`);
+                appendedPostFunctions(posts.children().eq(0));
+            }
+
+            function addToPostList(index, comments, profilePicture, name, date, description, postId){
+                if(profilePicture == null){
+                    profilePicture = "images/blank.png";
+                }
+                posts.append(`<div id="${postId}" class="col-lg-6 mx-auto card mt-5 shadow rounded-3">
+                                    <div class="card-body">
+                                        <div class="d-flex">
+                                            <img src="${profilePicture}" class="img-fluid" style="height:50px;width:50px;border-radius:100%">
+                                            <div class="ms-3">
+                                                <p class="lh-sm"><span class="fw-bold fs-4">${name}</span></span><br>${date}</p>
+                                            </div>
+                                        </div>
+                                        <p class="fs-2">${description}</p>
+                                    </div>
+                                    <div class="card-footer">
+                                        <h5 class="fw-bold">Comments</h5>
+                                        <button value = "${postId}" class="view-all-comments btn btn-link" data-bs-toggle="modal" data-bs-target="#view-all-comments-modal">View All Comments...</button>
+                                        <div class="comment-list">
+                                            
+                                        </div>
+                                        <div class="input-group mt-3">
+
+                                                <input class="write-comment form-control" type="text" placeholder="Write a comment...">
+                                                <div class="invalid-feedback">Please fill out this field.</div>
+                                            <button value="${postId}" class="write-comment-btn btn btn-outline-success"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-send-fill" viewBox="0 0 16 16">
+                                            <path d="M15.964.686a.5.5 0 0 0-.65-.65L.767 5.855H.766l-.452.18a.5.5 0 0 0-.082.887l.41.26.001.002 4.995 3.178 3.178 4.995.002.002.26.41a.5.5 0 0 0 .886-.083l6-15Zm-1.833 1.89L6.637 10.07l-.215-.338a.5.5 0 0 0-.154-.154l-.338-.215 7.494-7.494 1.178-.471-.47 1.178Z"/>
+                                            </svg></button>
+                                        </div>
+                                    </div>
+                                </div>`);
+
+                var commentList = posts.children().eq(index).find('.comment-list');
+                $(comments).each(function(index, value){
+                    commentList.append(`<div class="card mt-2">
+                                        <div class="card-body">
+                                            <p class="lh-sm">
+                                                <span class="fw-bold">${value.name}</span><br>
+                                                <span class="fs-6">${value.comment}</span>
+                                            </p>
+                                        </div>
+                                    </div>`)
+                })
+            }
+
+
+            function session(){
+                $.ajax({
+                    type: 'GET',
+                    url: 'php/panelSession.php',
+                    success: function(response){
+                        if(response != 'ok'){
+                            window.location.replace('index.html');
+                        }
+                    }
+                })
+            }
+        })
+    </script>
+    <title>TAU Connect</title>
+</head>
+<body>
+    <nav class="sticky-top shadow navbar bg-light navbar-expand-lg navbar-light">
+        <div class="container">
+            <div class="navbar-brand">
+                <img src="../admin/images/tau logo.png" style="width: 70px; height: 70px" alt="">
+            </div>
+            <button class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#nav-menu">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="nav-menu">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a id="home-link" href="#" class="navigation-link nav-link px-3 mx-2"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-house-door-fill" viewBox="0 0 16 16">
+                            <path d="M6.5 14.5v-3.505c0-.245.25-.495.5-.495h2c.25 0 .5.25.5.5v3.5a.5.5 0 0 0 .5.5h4a.5.5 0 0 0 .5-.5v-7a.5.5 0 0 0-.146-.354L13 5.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293L8.354 1.146a.5.5 0 0 0-.708 0l-6 6A.5.5 0 0 0 1.5 7.5v7a.5.5 0 0 0 .5.5h4a.5.5 0 0 0 .5-.5z"/>
+                          </svg><span class="ms-2">Forums</span></a>
+                    </li>
+                    <li class="nav-item">
+                        <a id="profile-link" href="#" class="navigation-link nav-link px-3 mx-2"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-person-circle" viewBox="0 0 16 16">
+                            <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/>
+                            <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8zm8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1z"/>
+                          </svg><span class="ms-2">My Profile</span></a>
+                    </li>
+                    <li class="nav-item">
+                        <a id="announcement-link" href="#" class="navigation-link nav-link px-3 mx-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-megaphone-fill" viewBox="0 0 16 16">
+                                <path d="M13 2.5a1.5 1.5 0 0 1 3 0v11a1.5 1.5 0 0 1-3 0v-11zm-1 .724c-2.067.95-4.539 1.481-7 1.656v6.237a25.222 25.222 0 0 1 1.088.085c2.053.204 4.038.668 5.912 1.56V3.224zm-8 7.841V4.934c-.68.027-1.399.043-2.008.053A2.02 2.02 0 0 0 0 7v2c0 1.106.896 1.996 1.994 2.009a68.14 68.14 0 0 1 .496.008 64 64 0 0 1 1.51.048zm1.39 1.081c.285.021.569.047.85.078l.253 1.69a1 1 0 0 1-.983 1.187h-.548a1 1 0 0 1-.916-.599l-1.314-2.48a65.81 65.81 0 0 1 1.692.064c.327.017.65.037.966.06z"/>
+                              </svg><span class="ms-2">Announcments</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a id="messages-link" href="#" class="navigation-link nav-link px-3 mx-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chat-fill" viewBox="0 0 16 16">
+                            <path d="M8 15c4.418 0 8-3.134 8-7s-3.582-7-8-7-8 3.134-8 7c0 1.76.743 3.37 1.97 4.6-.097 1.016-.417 2.13-.771 2.966-.079.186.074.394.273.362 2.256-.37 3.597-.938 4.18-1.234A9.06 9.06 0 0 0 8 15z"/>
+                          </svg><span class="ms-2">Messaging</span></a>
+                    </li>
+                    
+                    <li class="nav-item">
+                        <a id="logout" href="#" class="navigation-link nav-link px-3 mx-2"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-box-arrow-right" viewBox="0 0 16 16">
+                            <path fill-rule="evenodd" d="M10 12.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-8A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0v2z"/>
+                            <path fill-rule="evenodd" d="M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3z"/>
+                          </svg><span class="ms-2">Log Out</span></a>
+                    </li>
+                    
+                </ul>
+            </div>
+        </div>
+    </nav>
+    
+
+    <section id="forum-section">
+        <div class="container">
+            <p id="no-posts" class="text-center mt-5 lead">
+                No Forum Topics Yet. Be the first one to write!
+            </p>
+        </div>
+        <div class="container position-relative">
+            <div class="card shadow col-lg-6 mx-auto mt-5">
+                <div class="card-body">
+                    <input id="forum-post" type="text" class="form-control" placeholder="What's on your mind?">
+                </div>
+                <div class="card-footer">
+                    <button id="confirm-forum-post" class="btn btn-success px-5 rounded-pill">Post</button>
+                </div>
+            </div>
+        </div>
+        <div class="container">
+            <div class="card shadow mt-3 mx-auto col-lg-6">
+                <div class="card-header">
+                    <h3 class="fw-bold">
+                        Top 3 Trending Topics
+                    </h3>
+                </div>
+                <div class="card-body" >
+                    <ol id="trending-topics">
+
+                    </ol>
+                </div>
+            </div>
+        </div>
+        
+        <div class="container" id="posts">
+            
+            
+        </div>
+    </section>
+
+    <section id="announcment-section">
+        <div class="container">
+
+            <div class="card shadow mt-5 col-lg-5 mx-auto" id="post-announcement-card">
+                <div class="card-header">
+                    <h3 class="fw-bold">
+                        Post an Announcement
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <input id="post-announcement-text" type="text" class="form-control" placeholder="Post an Announcement here...">
+                    <div class="invalid-feedback">
+                        Please fill out this field.
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <button id="confirm-post-announcement" class="btn btn-success rounded-pill px-5">
+                        Post
+                    </button>
+                </div>
+            </div>
+
+            <div id="announcement-table" class="mt-5">
+                
+            </div>
+        </div>
+    </section>
+
+    <section id="profile-section">
+        <div class="container">
+            <div class="mx-auto col-lg-7 card mt-5 shadow rounded-4">
+                <div class="card-header rounded-4 bg-success">
+                    <div style="width:200px; height:200px" class="mx-auto position-relative rounded-circle mt-5">
+                        <img style="width:100%; height:100%; object-fit: cover;" id="profile-picture" src="images/blank.png" alt="" class="rounded-circle">
+                        <button class="position-absolute top-0 start-100 translate-middle badge rounded-pill btn btn-success" data-bs-toggle="modal" data-bs-target="#upload-profile-picture-modal"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil-square" viewBox="0 0 16 16">
+                            <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/>
+                            <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5v11z"/>
+                          </svg></button>
+                    </div>
+                </div>
+                <div class="card-body text-center">
+                    <h1 id="profile-name" class="fw-bold mt-2">
+                        
+                    </h1>
+                    <p><em id="profile-email"></em></p>
+                    <p><em id="profile-user-type"></em></p>
+                    
+                    <button id="edit-profile-modal-trigger" data-bs-toggle="modal" data-bs-target="#edit-profile-modal" class="btn btn-success"><svg class="me-2" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil-square" viewBox="0 0 16 16">
+                        <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/>
+                        <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5v11z"/>
+                      </svg>Edit Profile</button>
+                </div>
+            </div>
+            <div class="d-lg-flex justify-content-between col-lg-7 mx-auto">
+                <div class="align-self-start card mt-4 mt-lg-2 shadow col-lg-4 mx-auto rounded-4 submit-complain-section">
+                    <div class="card-header rounded-4">
+                        <h4 class="fw-bold text-center">
+                            Submit a Complain
+                        </h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="input-group">
+                            <span class="input-group-text">To:</span>
+                            <input id="complaint-to" type="text" class="form-control">
+                            <div id="complaint-to-error" class="invalid-feedback">
+
+                            </div>
+                        </div>
+                        <textarea id="complain" class="form-control mt-3" placeholder="Write your complain here..."></textarea>
+                        <div class="invalid-feedback" id="complain-feedback">
+    
+                        </div>
+                        <button id="submit-complain" class="btn btn-success mt-3 rounded-pill" style="width: 100%">Submit</button>
+                    </div>
+                </div>
+    
+                <div class="card mt-2 shadow col-lg-7 mx-auto rounded-4 submit-complain-section">
+                    <div class="card-header rounded-4">
+                        <h3 class="fw-bold">Recent Complaints</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <th scope="col">Complaint</th>
+                                    <th scope="col">Category</th>
+                                    <th scope="col">Status</th>
+                                    <th scope="col">Date</th>
+                                </thead>
+                                <tbody id="complaints-table">
+    
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+    </section>
+
+
+    <section id="messages-section">
+        
+        <div class="container mt-5 text-center">
+            <button class="btn btn-success px-5 col-lg-5" data-bs-target="#write-new-message-modal" data-bs-toggle="modal">Write New Message</button>
+            <div id="message-users" class="text-start">
+
+            </div>
+        </div>
+    </section>
+
+    <div class="modal fade" id="write-new-message-modal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="fw-bold">
+                        Create a Conversation
+                    </h3>
+                    <button class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <label>To:</label>
+                    <select id="users-to-message" class="form-select"></select>
+                    <div class="input-group mt-3">
+                        <input id="new-message" type="text" class="form-control" placeholder="Write Your Message Here">
+                        <button id="send-new-message" class="btn btn-success">Send</button>
+                    </div>
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="modal fade" id="upload-profile-picture-modal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="fw-bold">
+                        Upload Photo
+                    </h3>
+                    <button class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input id="image-upload" type="file" class="form-control">
+                    <button id="confirm-image-upload" class="btn btn-success mt-3" style="width: 100%">Confirm</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="edit-profile-modal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="fw-bold">
+                        Edit Profile
+                    </h3>
+                    <button class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input id="update-name" type="text" class="form-control" placeholder="Update Name">
+                    <input id="update-email" type="text" class="form-control mt-3" placeholder="Update Email">
+                    <input id="update-password" type="password" class="form-control mt-3" placeholder="Update Password">
+                    <input id="confirm-password" type="password" class="form-control mt-3" placeholder="Confirm Password">
+                    <button data-bs-dismiss="modal" id="confirm-edit-profile" class="btn btn-success fw-bold mt-3 rounded-pill" style="width: 100%">Confirm</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="modal fade" id="conversation-modal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="fw-bold" id="receiver-name">
+                        
+                    </h3>
+                    <button class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="message-list">
+
+                </div>
+                <div class="modal-footer">
+                    <div class="input-group">
+                        <input id="message-text" type="text" class="form-control">
+                        <div class="invalid-feedback" id="message-text-feedback"></div>
+                        <button id="send-message" class="btn btn-success">Send</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="view-all-comments-modal" data-bs-backdrop="static">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="card shadow rounded-3">
+                        <div class="card-body">
+                            <div class="d-flex">
+                                <img id="specific-post-profile-picture" class="img-fluid" style="height:50px;width:50px;border-radius:100%">
+                                <div class="ms-3">
+                                    <p class="lh-sm"><span id="specific-post-name" class="fw-bold fs-4"></span><br><em><span id="specific-post-date"></em></span></p>
+                                </div>
+                            </div>
+                            <p id="specific-post-description" class="fs-2"></p>
+                        </div>
+                        <div class="card-footer">
+                            <h5 class="fw-bold">Comments</h5>
+                            <div id="specific-post-comment-list">
+                                
+                            </div>
+                            <div class="input-group mt-3">
+
+                                <input class="write-comment form-control" type="text" placeholder="Write a comment...">
+                                <div class="invalid-feedback">Please fill out this field.</div>
+                                <button value="${postId}" class="write-comment-btn btn btn-outline-success"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-send-fill" viewBox="0 0 16 16">
+                                <path d="M15.964.686a.5.5 0 0 0-.65-.65L.767 5.855H.766l-.452.18a.5.5 0 0 0-.082.887l.41.26.001.002 4.995 3.178 3.178 4.995.002.002.26.41a.5.5 0 0 0 .886-.083l6-15Zm-1.833 1.89L6.637 10.07l-.215-.338a.5.5 0 0 0-.154-.154l-.338-.215 7.494-7.494 1.178-.471-.47 1.178Z"/>
+                                </svg></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

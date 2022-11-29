@@ -1,0 +1,14 @@
+.ease-in{
+    animation-name: custom-animation;
+    animation-duration: 1s;
+    animation-fill-mode: forwards;
+}
+
+@keyframes custom-animation{
+    from{
+        opacity: 0%;
+    }
+    to{
+        opacity: 100%;
+    }
+}

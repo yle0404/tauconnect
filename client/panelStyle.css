@@ -1,0 +1,14 @@
+.navigation-link{
+    border-radius: 10px;
+    transition-duration: .3s;
+}
+.navigation-link:hover{
+    background-color: green;
+    color: white;
+}
+
+.navigation-is-active{
+    border-width: 1px;
+    border-color: black;
+    border-style: solid;
+}

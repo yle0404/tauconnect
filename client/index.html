@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/css/bootstrap.min.css">
+        <link rel="stylesheet" href="style.css">
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/js/bootstrap.bundle.min.js"></script>
+        <script src="../js/jquery.js"></script>
+
+        <script>
+            $(document).ready(function(){
+                var email = $('#email');
+                var password = $('#password');
+                var loginBtn = $('#login-btn');
+
+                loginFunc();
+
+                function loginFunc(){
+                    email.on('keydown', function(){
+                        email.removeClass('is-invalid');
+                    })
+                    password.on('keydown', function(){
+                        password.removeClass('is-invalid');
+                    })
+
+                    loginBtn.on('click', function(){
+                        if(email.val() == ""){
+                            $('#email-invalid-feedback').text('Please fill out this field.');
+                            email.addClass('is-invalid');
+                        }else if(password.val() ==""){
+                            $('#password-invalid-feedback').text('Please fill out this field');
+                            password.addClass('is-invalid');
+                        }else{
+                            $.ajax({
+                                type: 'POST',
+                                url: 'php/login.php',
+                                data:{
+                                    email: email.val(),
+                                    password: password.val()
+                                },
+                                success: function(response){
+
+                                    if(response == 'invalid'){
+                                        $('#email-invalid-feedback').text('Invalid Email and Password');
+                                        email.addClass('is-invalid')
+                                    }else{
+                                        window.location.replace(response);
+                                    }
+                                }
+                            })
+                        }
+                    })
+                }
+                
+            })
+        </script>
+        <title>Log In</title>
+    </head>
+<body class="bg-light">
+
+    <div class="container">
+        <div class="d-lg-flex justify-content-evenly" id="login-module">
+            <div class="text-center">
+                <img class="img-fluid col-lg-5" src="../admin/images/tau logo.png" style="height: 200px; width: 200px">
+                <h3 class="fw-bold">TAU Connect</h3>
+                <p class="lead text-lg-start">Do'nt have an account? Contact the Administrator to sign up.</p>
+            </div>
+            
+            <div class="card shadow rounded-3 col-lg-4">
+                <div class="card-body pt-5">
+                    <div>
+                        <input id="email" type="text" class="form-control" placeholder="Email or Student/Teacher ID">
+                        <div id="email-invalid-feedback" class="invalid-feedback"></div>
+                    </div>
+                    <div>
+                        <input id="password" type="password" class="form-control mt-3" placeholder="Password">
+                        <div id="password-invalid-feedback" class="invalid-feedback"></div>
+                    </div>
+                    
+                    <button id="login-btn" class="btn btn-success fw-bold mt-3 rounded-pill" style="width: 100%">Log In</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+
+</body>
+</html>

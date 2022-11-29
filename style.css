@@ -1,0 +1,60 @@
+.nav-active-link{
+    border-radius: 10px;
+    border-width: 1px;
+    border-color: black;
+    border-style: solid;
+    
+}
+
+#header{
+    padding-top: 10%;
+    padding-bottom: 10%;
+    position: relative;
+    
+}
+
+#header::after{
+    opacity: 20%;
+    content: '';
+    background-image: url('tau.jpg');
+    background-size: cover;
+    background-repeat: no-repeat;
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    z-index: -1;
+}
+#features-title{
+    font-size: 50px;
+}
+
+.nav-link:hover{
+    border-radius: 10px;
+    border-width: 1px;
+    border-color: grey;
+    border-style: solid;
+}
+#logo{
+    display: none;
+
+}
+
+@media (min-width: 992px){
+    
+    #logo{
+        display: block;
+        margin-left: 180px;
+        transition-duration: .4s;
+        transition-timing-function: ease-out;
+    }
+    #logo:hover{
+        transform: scale(20px,20px);
+    }
+    #header::after{
+        background-size: contain;
+    }
+}
+
+
