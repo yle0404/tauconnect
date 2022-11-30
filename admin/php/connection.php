@@ -7,9 +7,9 @@
             // $database = "tau_db";
 
             $hostname = "localhost";
-            $username = "u568496919_tau";
-            $password = "TauPassword11";
-            $database = "u568496919_tau_db";
+            $username = "u655901399_yle0404";
+            $password = "Tau@connect1";
+            $database = "u655901399_tauconnect";
 
             $con = new mysqli($hostname, $username, $password, $database);
 
